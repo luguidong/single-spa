@@ -34,7 +34,7 @@ export function reroute(pendingPromises = [], eventArguments) {
   } else {
     return loadApps();
   }
-
+  //这里应该就是，加载其它模块的部分
   function loadApps() {
     return Promise.resolve().then(() => {
       const loadPromises = getAppsToLoad().map(toLoadPromise);
