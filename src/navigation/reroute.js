@@ -28,7 +28,7 @@ export function reroute(pendingPromises = [], eventArguments) {
 
   appChangeUnderway = true;
   let wasNoOp = true;
-
+  //第一次进入页面，这里是false，因此要去执行loadApps
   if (isStarted()) {
     return performAppChanges();
   } else {
@@ -37,12 +37,13 @@ export function reroute(pendingPromises = [], eventArguments) {
   //这里应该就是，加载其它模块的部分.
   function loadApps() {
     return Promise.resolve().then(() => {
+      //每次注册资源地址都会在这执行一次，通过app.js的getAppsToLoad拿到资源地址，并进行过滤
       const loadPromises = getAppsToLoad().map(toLoadPromise);
 
       if (loadPromises.length > 0) {
         wasNoOp = false;
       }
-
+     
       return Promise
         .all(loadPromises)
         .then(finishUpAndReturn)

@@ -40,7 +40,7 @@ export function declareChildApplication(appName, arg1, arg2) {
   console.warn('declareChildApplication is deprecated and will be removed in the next major version, use "registerApplication" instead')
   return registerApplication(appName, arg1, arg2)
 }
-
+//核心注册方法，暴露给外界
 export function registerApplication(appName, applicationOrLoadingFn, activityFn, customProps = {}) {
   if (typeof appName !== 'string' || appName.length === 0)
     throw Error(`The first argument must be a non-empty string 'appName'`);
@@ -96,6 +96,7 @@ export function checkActivityFunctions(location) {
 }
 
 export function getAppsToLoad() {
+  //对资源进行过滤，初步字面理解是：没有跳转过的、没有加载错误的、没有加载完的、应该被激活的，初步推测是结合性能优化做的，当符合以下条件时需要额外加载资源
   return apps
     .filter(notSkipped)
     .filter(withoutLoadErrors)
