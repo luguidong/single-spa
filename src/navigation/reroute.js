@@ -28,13 +28,13 @@ export function reroute(pendingPromises = [], eventArguments) {
 
   appChangeUnderway = true;
   let wasNoOp = true;
-  //第一次进入页面，这里是false，因此要去执行loadApps
+  //前期注册app时，这里是false，注册完成后，这里变为true，
   if (isStarted()) {
     return performAppChanges();
   } else {
     return loadApps();
   }
-  //这里应该就是，加载其它模块的部分.
+  //这里应该就是，加载其它模块的部分，并返回一个promise.all加载所有过滤后的资源，并执行finishUpAndReturn
   function loadApps() {
     return Promise.resolve().then(() => {
       //每次注册资源地址都会在这执行一次，通过app.js的getAppsToLoad拿到资源地址，并进行过滤
@@ -43,7 +43,8 @@ export function reroute(pendingPromises = [], eventArguments) {
       if (loadPromises.length > 0) {
         wasNoOp = false;
       }
-     
+      console.log('对每一个app进行加载');
+      console.log(loadPromises);
       return Promise
         .all(loadPromises)
         .then(finishUpAndReturn)
@@ -56,6 +57,7 @@ export function reroute(pendingPromises = [], eventArguments) {
 
   function performAppChanges() {
     return Promise.resolve().then(() => {
+      //注册single-spa:before-routing-event自定义事件
       window.dispatchEvent(new CustomEvent("single-spa:before-routing-event", getCustomEventDetail()));
       const unloadPromises = getAppsToUnload().map(toUnloadPromise);
 
@@ -124,8 +126,9 @@ export function reroute(pendingPromises = [], eventArguments) {
 
     })
   }
-
+  //加载完模块后需要进行更新
   function finishUpAndReturn(callEventListeners=true) {
+    //returnValue拿到的只是已经mounted的app的name
     const returnValue = getMountedApps();
 
     if (callEventListeners) {
@@ -135,6 +138,7 @@ export function reroute(pendingPromises = [], eventArguments) {
 
     try {
       const appChangeEventName = wasNoOp ? "single-spa:no-app-change": "single-spa:app-change";
+      //custom-event，基于浏览器的customEvent，兼容了ie8
       window.dispatchEvent(new CustomEvent(appChangeEventName, getCustomEventDetail()));
       window.dispatchEvent(new CustomEvent("single-spa:routing-event", getCustomEventDetail()));
     } catch (err) {
@@ -147,7 +151,7 @@ export function reroute(pendingPromises = [], eventArguments) {
       });
     }
 
-    /* Setting this allows for subsequent calls to reroute() to actually perform
+    /* Setting this allows for subsequent(后来的) calls to reroute() to actually perform
      * a reroute instead of just getting queued behind the current reroute call.
      * We want to do this after the mounting/unmounting is done but before we
      * resolve the promise for the `reroute` function.
@@ -179,7 +183,7 @@ export function reroute(pendingPromises = [], eventArguments) {
 
     callCapturedEventListeners(eventArguments);
   }
-
+  //对自定义事件配置的简单封装
   function getCustomEventDetail() {
     const result = {detail: {}}
 

@@ -90,6 +90,8 @@ export function getAppUnloadInfo(appName) {
 }
 
 export function getAppsToUnload() {
+  console.log('unload getAppToUnload')
+  console.log(appsToUnload)
   return Object.keys(appsToUnload)
     .map(appName => appsToUnload[appName].app)
     .filter(isntActive)
