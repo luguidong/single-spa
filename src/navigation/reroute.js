@@ -60,18 +60,18 @@ export function reroute(pendingPromises = [], eventArguments) {
       //注册single-spa:before-routing-event自定义事件
       window.dispatchEvent(new CustomEvent("single-spa:before-routing-event", getCustomEventDetail()));
       const unloadPromises = getAppsToUnload().map(toUnloadPromise);
-
+      console.log('perform unload',unloadPromises)
       const unmountUnloadPromises = getAppsToUnmount()
         .map(toUnmountPromise)
         .map(unmountPromise => unmountPromise.then(toUnloadPromise));
-
+      
       const allUnmountPromises = unmountUnloadPromises.concat(unloadPromises);
       if (allUnmountPromises.length > 0) {
         wasNoOp = false;
       }
 
       const unmountAllPromise = Promise.all(allUnmountPromises);
-
+      console.log('perform unmount',unmountAllPromise)
       const appsToLoad = getAppsToLoad();
 
       /* We load and bootstrap apps while other apps are unmounting, but we
@@ -85,6 +85,7 @@ export function reroute(pendingPromises = [], eventArguments) {
               .then(() => toMountPromise(app))
           })
       })
+      console.log('perform mount',loadThenMountPromises)
       if (loadThenMountPromises.length > 0) {
         wasNoOp = false;
       }
@@ -93,6 +94,7 @@ export function reroute(pendingPromises = [], eventArguments) {
        * to be mounted. They each wait for all unmounting apps to finish up
        * before they mount.
        */
+      //对app进行过滤，推测是拿到mount的app，通过console能够看到每次点到哪个模块，这里获取的就是哪个模块
       const mountPromises = getAppsToMount()
         .filter(appToMount => appsToLoad.indexOf(appToMount) < 0)
         .map(appToMount => {
@@ -103,6 +105,7 @@ export function reroute(pendingPromises = [], eventArguments) {
       if (mountPromises.length > 0) {
         wasNoOp = false;
       }
+      console.log('perform mountPromise',mountPromises)
       return unmountAllPromise
         .catch(err => {
           callAllEventListeners();
@@ -113,6 +116,7 @@ export function reroute(pendingPromises = [], eventArguments) {
            * events (like hashchange or popstate) should have been cleaned up. So it's safe
            * to let the remaining captured event listeners to handle about the DOM event.
            */
+          //重置事件和路由监听
           callAllEventListeners();
 
           return Promise
@@ -169,7 +173,8 @@ export function reroute(pendingPromises = [], eventArguments) {
 
     return returnValue;
   }
-
+  //我们需要调用所有被延迟的事件监听器，因为它们正在等待single-spa,这包括当前运行的performAppChanges()的haschange和popstate事件，以及所有排队的事件监听器，
+  //我们希望以相同的顺序调用监听器，就像它们没有被single-spa延迟一样,这意味着先排队，然后是最近的一个
   /* We need to call all event listeners that have been delayed because they were
    * waiting on single-spa. This includes haschange and popstate events for both
    * the current run of performAppChanges(), but also all of the queued event listeners.

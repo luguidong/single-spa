@@ -90,6 +90,7 @@ export function getAppUnloadInfo(appName) {
 }
 
 export function getAppsToUnload() {
+  //基本都是空的，暂时推测是弱网络情况下做的预防
   console.log('unload getAppToUnload')
   console.log(appsToUnload)
   return Object.keys(appsToUnload)

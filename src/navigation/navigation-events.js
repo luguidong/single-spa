@@ -50,10 +50,13 @@ export function navigateToUrl(obj, opts={}) {
   }
 }
 
+//捕捉dom事件，由于single spa的异步加载模块，因此路由这些切换的时候，需要将事件都先暂存下等待异步模块加载完成，随后进行路由的切换
 export function callCapturedEventListeners(eventArguments) {
+  console.log('call all event',eventArguments)
   if (eventArguments) {
     const eventType = eventArguments[0].type;
     if (routingEventsListeningTo.indexOf(eventType) >= 0) {
+      //适配hashchange popstate
       capturedEventListeners[eventType].forEach(listener => {
         listener.apply(this, eventArguments);
       });
@@ -74,17 +77,19 @@ window.addEventListener('popstate', urlReroute);
 const originalAddEventListener = window.addEventListener;
 const originalRemoveEventListener = window.removeEventListener;
 window.addEventListener = function(eventName, fn) {
+  this.console.log('全新事件添加了',eventName)
   if (typeof fn === 'function') {
     if (routingEventsListeningTo.indexOf(eventName) >= 0 && !find(capturedEventListeners[eventName], listener => listener === fn)) {
       capturedEventListeners[eventName].push(fn);
       return;
     }
   }
-
+  //相当于劫持了原生添加事件监听的方法
   return originalAddEventListener.apply(this, arguments);
 }
 
 window.removeEventListener = function(eventName, listenerFn) {
+  this.console.log('全新事件移除了',eventName)
   if (typeof listenerFn === 'function') {
     if (routingEventsListeningTo.indexOf(eventName) >= 0) {
       capturedEventListeners[eventName] = capturedEventListeners[eventName].filter(fn => fn !== listenerFn);
