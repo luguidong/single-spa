@@ -16,6 +16,8 @@ export function triggerAppChange() {
 }
 
 export function reroute(pendingPromises = [], eventArguments) {
+  console.log('reroute promise',pendingPromises);
+  console.log('reroute event',eventArguments);
   if (appChangeUnderway) {
     return new Promise((resolve, reject) => {
       peopleWaitingOnAppChange.push({
@@ -134,12 +136,12 @@ export function reroute(pendingPromises = [], eventArguments) {
   function finishUpAndReturn(callEventListeners=true) {
     //returnValue拿到的只是已经mounted的app的name
     const returnValue = getMountedApps();
-
+    console.log('finishUpAndReturn return value',returnValue)
     if (callEventListeners) {
       callAllEventListeners();
     }
     pendingPromises.forEach(promise => promise.resolve(returnValue));
-
+    console.log('finishUpAndReturn',pendingPromises)
     try {
       const appChangeEventName = wasNoOp ? "single-spa:no-app-change": "single-spa:app-change";
       //custom-event，基于浏览器的customEvent，兼容了ie8

@@ -43,7 +43,7 @@ export function navigateToUrl(obj, opts={}) {
   } else {
     window.location.hash = '#' + destination.anchor;
   }
-
+  console.log('navigatorToUrl',destination);
   function isSamePath(destination, current) {
     // if the destination has a path but no domain, it doesn't include the root '/'
     return current === destination || current === '/' + destination;
@@ -65,6 +65,8 @@ export function callCapturedEventListeners(eventArguments) {
 }
 
 function urlReroute() {
+  //navigator reroute
+  console.log('navigator url reroute',arguments);
   reroute([], arguments)
 }
 
@@ -131,7 +133,7 @@ function createPopStateEvent(state) {
   }
 }
 
-/* For convenience in `onclick` attributes, we expose a global function for navigating to
+/* For convenience（方便） in `onclick` attributes, we expose（暴露） a global function for navigating to
  * whatever an <a> tag's href is.
  */
 window.singleSpaNavigate = navigateToUrl;
